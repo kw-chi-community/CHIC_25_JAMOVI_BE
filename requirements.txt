@@ -2,3 +2,5 @@ fastapi
 uvicorn
 sqlalchemy
 python-dotenv
+rpy2
+pandas
