@@ -1,0 +1,68 @@
+
+name: Build and Deploy Docker Image
+
+on:
+  push:
+    branches:
+      - develop  # 메인 브랜치에 푸시될 때 실행
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. GitHub에서 코드 체크아웃
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # 2. Docker Hub에 로그인
+    - name: Log in to Docker Hub
+      run: | 
+        echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+        # github actions에 secrets에 pw 추가 가능
+
+    # 3. Docker 이미지 빌드 및 태그 (no-cache 옵션 추가)
+    - name: Build and tag Docker image
+      run: |
+        docker build --no-cache -t ${{ secrets.DOCKER_HUB_USERNAME }}/CHIC_25_JAMOVI_BE:latest .
+        docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/CHIC_25_JAMOVI_BE:latest ${{ secrets.DOCKER_HUB_USERNAME }}/CHIC_25_JAMOVI_BE:latest
+
+    # 4. Docker Hub로 푸시
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/CHIC_25_JAMOVI_BE:latest ### build한 이미지와 해당 이름이 같아야 함
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push  # 'build-and-push' 작업이 완료되면 실행
+
+    steps:
+    - name: Install SSH and sshpass
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openssh-client sshpass
+
+    # 5. Docker Hub에 로그인 (서버에서 이미지 풀링 전)
+    - name: Log in to Docker Hub on the server
+      run: |
+        echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+    # 6. SSH 접속 및 Docker 이미지 Pull & Run
+    - name: Deploy to Server
+      env:
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PASS: ${{ secrets.SSH_PASS }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
+      run: |
+        echo "Starting deployment..."
+        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+          IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/CHIC_25_JAMOVI_BE:latest"
+          echo "$SSH_PASS" | sudo -S docker pull $IMAGE
+          echo "$SSH_PASS" | sudo -S docker stop CHIC_25_JAMOVI_BE || true
+          echo "$SSH_PASS" | sudo -S docker rm CHIC_25_JAMOVI_BE || true
+          echo "$SSH_PASS" | sudo -S docker run -d --name CHIC_25_JAMOVI_BE -p 10211:8000 $IMAGE
+          echo "$SSH_PASS" | sudo -S docker system prune -af
+        EOF
+    
