@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api import test_router
 from contextlib import asynccontextmanager
-from app.models.database import init_db
+from models import init_db
 import logging
 
 
