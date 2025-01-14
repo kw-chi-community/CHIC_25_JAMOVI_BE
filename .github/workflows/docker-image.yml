@@ -57,6 +57,10 @@ jobs:
         SSH_PORT: ${{ secrets.SSH_PORT }}
       run: |
         echo "Starting deployment..."
+        echo "SSH_HOST: $SSH_HOST"
+        echo "SSH_USER: $SSH_USER"
+        echo "SSH_PORT: $SSH_PORT"
+        echo "DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}"
         sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest"
           echo "$SSH_PASS" | sudo -S docker pull $IMAGE
@@ -65,4 +69,4 @@ jobs:
           echo "$SSH_PASS" | sudo -S docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE
           echo "$SSH_PASS" | sudo -S docker system prune -af
         EOF
-    
+
