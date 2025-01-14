@@ -60,8 +60,9 @@ jobs:
         echo "DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}"
         
         # Echo the SSH command
-        echo "SSH command: `sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST`"
-        
+        echo "!!"
+        echo "SSH command: sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST"
+        echo "!!"
         # Actual SSH command
         sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest"
