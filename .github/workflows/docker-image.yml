@@ -61,7 +61,7 @@ jobs:
         echo "SSH command: ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST"
         echo "!!"
     
-        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
         echo "succeed ssh login"
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest"
           sudo docker pull $IMAGE
