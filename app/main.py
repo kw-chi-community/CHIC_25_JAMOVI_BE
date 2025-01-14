@@ -3,6 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from api import test_router
 from contextlib import asynccontextmanager
 from app.models.database import init_db
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(filename='jamovi_be.log', level=logging.INFO)
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
