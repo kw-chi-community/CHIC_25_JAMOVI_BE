@@ -1,8 +1,11 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Float, Boolean, 
+    ForeignKey, Text, JSON
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 
 load_dotenv()
 
@@ -19,10 +22,137 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True)
+    password = Column(String(255))
+    
+    projects = relationship("Project", back_populates="user")
+    project_permissions = relationship("ProjectPermission", back_populates="user")
 
-    id = Column(Integer, primary_key=True, index=True) # 우선 임의로 만들었어요. db 설계 후 제대로 작성해봅시다
-    username = Column(String(50), unique=True, index=True)
-    password = Column(String(100))
+class Project(Base):
+    __tablename__ = "projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    name = Column(String(255))
+    visibility = Column(String(50))  # public_all_editor, public_all_viewer, private, etc
+    description = Column(Text)
+    
+    user = relationship("User", back_populates="projects")
+    permissions = relationship("ProjectPermission", back_populates="project")
+    statistical_tests = relationship("StatisticalTest", back_populates="project")
+    tables = relationship("TableData", back_populates="project")
+
+class ProjectPermission(Base): # etc일 경우 해당 테이블에서 권한 관리
+    __tablename__ = "project_permissions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    is_editor = Column(Boolean, default=False)
+    
+    user = relationship("User", back_populates="project_permissions")
+    project = relationship("Project", back_populates="permissions")
+
+class StatisticalTest(Base):
+    __tablename__ = "statistical_tests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    alias = Column(String(255))
+    significance_level = Column(Float)
+    test_method = Column(String(100))
+    experimental_design = Column(String(255))
+    subject_info = Column(Text)
+    conclusion = Column(Text)
+    results = Column(Text)
+    image_url = Column(String(255))
+    normality_satisfied = Column(Boolean)
+    homoscedasticity_satisfied = Column(Boolean)
+    independence_satisfied = Column(Boolean)
+    
+    project = relationship("Project", back_populates="statistical_tests")
+    selected_data = relationship("SelectedTableData", back_populates="statistical_test")
+    anova_results = relationship("OneWayANOVAResult", back_populates="statistical_test")
+    paired_ttest_results = relationship("PairedTTestResult", back_populates="statistical_test")
+    independent_ttest_results = relationship("IndependentTTestResult", back_populates="statistical_test")
+    one_sample_ttest_results = relationship("OneSampleTTestResult", back_populates="statistical_test")
+
+class TableData(Base):
+    __tablename__ = "table_data"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    row_num = Column(Integer)
+    col_num = Column(Integer)
+    value = Column(String(255))
+    
+    project = relationship("Project", back_populates="tables")
+
+class SelectedTableData(Base):
+    __tablename__ = "selected_table_data"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
+    row_num = Column(Integer)
+    col_num = Column(Integer)
+    value = Column(String(255))
+    is_group = Column(Boolean)
+    
+    statistical_test = relationship("StatisticalTest", back_populates="selected_data")
+
+class OneWayANOVAResult(Base):
+    __tablename__ = "oneway_anova_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
+    df = Column(Integer)
+    sum_sq = Column(Float)
+    mean_sq = Column(Float)
+    f_value = Column(Float)
+    p_value = Column(Float)
+    
+    statistical_test = relationship("StatisticalTest", back_populates="anova_results")
+
+class PairedTTestResult(Base):
+    __tablename__ = "paired_ttest_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
+    t_statistic = Column(Float)
+    df = Column(Integer)
+    p_value = Column(Float)
+    mean_difference = Column(Float)
+    confidence_interval = Column(JSON)  # lower, upper
+    
+    statistical_test = relationship("StatisticalTest", back_populates="paired_ttest_results")
+
+class IndependentTTestResult(Base):
+    __tablename__ = "independent_ttest_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
+    t_statistic = Column(Float)
+    df = Column(Integer)
+    p_value = Column(Float)
+    confidence_interval = Column(JSON)  # lower, upper
+    sample_estimates = Column(JSON)  # 각 그룹별 mean, std_dev, n
+    
+    statistical_test = relationship("StatisticalTest", back_populates="independent_ttest_results")
+
+class OneSampleTTestResult(Base):
+    __tablename__ = "one_sample_ttest_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
+    t_statistic = Column(Float)
+    df = Column(Integer)
+    p_value = Column(Float)
+    confidence_interval = Column(JSON)  # lower, upper
+    sample_estimates = Column(JSON)  # mean, std_dev, n
+    
+    statistical_test = relationship("StatisticalTest", back_populates="one_sample_ttest_results")
 
 def init_db():
     Base.metadata.create_all(bind=engine)
