@@ -51,10 +51,10 @@ jobs:
     # 6. SSH 접속 및 Docker 이미지 Pull & Run
     - name: Deploy to Server
       env:
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
-        SSH_PORT: ${{ secrets.SSH_PORT }}
+        SSH_HOST: 223.194.20.119
+        SSH_USER: ubuntu
+        SSH_PASS: rootroot
+        SSH_PORT: 2222
       run: |
         echo "Starting deployment..."
         echo "DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}"
