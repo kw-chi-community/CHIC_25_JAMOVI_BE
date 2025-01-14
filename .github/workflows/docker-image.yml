@@ -4,7 +4,7 @@ name: Build and Deploy Docker Image
 on:
   push:
     branches:
-      - develop  # 메인 브랜치에 푸시될 때 실행
+      - develop 
 
 jobs:
   build-and-push:
@@ -51,17 +51,17 @@ jobs:
     # 6. SSH 접속 및 Docker 이미지 Pull & Run
     - name: Deploy to Server
       env:
-        SSH_HOST: 223.194.20.119
-        SSH_USER: ubuntu
-        SSH_PASS: rootroot
-        SSH_PORT: 2222
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_PASS: ${{ secrets.SSH_PASS }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
       run: |
         echo "Starting deployment..."
         echo "DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}"
         
         # Echo the SSH command
         echo "!!"
-        echo "SSH command: sshpass -p ${SSH_PASS:0:8} ssh -o StrictHostKeyChecking=no -p ${SSH_PORT:0:4} ${SSH_USER:0:6}@${SSH_HOST:0:14}"
+        echo "SSH command: sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST"
         echo "!!"
         # Actual SSH command
         sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << 'EOF'
@@ -72,4 +72,3 @@ jobs:
           echo "$SSH_PASS" | sudo -S docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE
           echo "$SSH_PASS" | sudo -S docker system prune -af
         EOF
-
