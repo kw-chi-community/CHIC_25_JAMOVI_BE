@@ -62,11 +62,12 @@ jobs:
         echo "SSH command: sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST"
         echo "!!"
 
-        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
+        echo "succeed ssh login"
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest"
-          echo "$SSH_PASS" | sudo -S docker pull $IMAGE
-          echo "$SSH_PASS" | sudo -S docker stop chic_25_jamovi_be || true
-          echo "$SSH_PASS" | sudo -S docker rm chic_25_jamovi_be || true
-          echo "$SSH_PASS" | sudo -S docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE
-          echo "$SSH_PASS" | sudo -S docker system prune -af
+          echo $SSH_PASS | sudo -S docker pull $IMAGE
+          echo $SSH_PASS | sudo -S docker stop chic_25_jamovi_be || true
+          echo $SSH_PASS | sudo -S docker rm chic_25_jamovi_be || true
+          echo $SSH_PASS | sudo -S docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE
+          echo $SSH_PASS | sudo -S docker system prune -af
         EOF
