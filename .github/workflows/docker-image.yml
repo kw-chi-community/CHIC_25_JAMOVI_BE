@@ -1,4 +1,3 @@
-
 name: Build and Deploy Docker Image
 
 on:
@@ -11,31 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. GitHub에서 코드 체크아웃
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # 2. Docker Hub에 로그인
     - name: Log in to Docker Hub
       run: | 
         echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
-        # github actions에 secrets에 pw 추가 가능
+    - name: Create .env file
+      run: |
+        echo "${{ secrets.ENV }}" > .env
 
-    # 3. Docker 이미지 빌드 및 태그 (no-cache 옵션 추가)
     - name: Build and tag Docker image
       run: |
         docker build --no-cache -t ${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest .
         docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest ${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest
 
-    # 4. Docker Hub로 푸시
     - name: Push Docker image to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest ### build한 이미지와 해당 이름이 같아야 함
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push  # 'build-and-push' 작업이 완료되면 실행
+    needs: build-and-push
 
     steps:
     - name: Install SSH and sshpass
@@ -43,12 +40,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y openssh-client sshpass
 
-    # 5. Docker Hub에 로그인 (서버에서 이미지 풀링 전)
     - name: Log in to Docker Hub on the server
       run: |
         echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
-    # 6. SSH 접속 및 Docker 이미지 Pull & Run
     - name: Deploy to Server
       env:
         SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -68,7 +63,6 @@ jobs:
           sudo docker pull $IMAGE
           sudo docker stop chic_25_jamovi_be || true
           sudo docker rm chic_25_jamovi_be || true
-          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE
+          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 --env-file .env $IMAGE
           sudo docker system prune -af
         EOF
-
