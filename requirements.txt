@@ -9,6 +9,9 @@ pymysql
 rpy2
 pandas
 
+# request data processing....?
+python-multipart
+
 # env
 python-dotenv
 
@@ -19,3 +22,7 @@ python-jose[cryptography]
 # data validation
 pydantic[email]
 pydantic
+
+# logging
+logging
+icecream
