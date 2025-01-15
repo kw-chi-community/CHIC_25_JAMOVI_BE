@@ -57,16 +57,14 @@ jobs:
         echo "SSH command: ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST"
         echo "!!"
     
-        # Create .env file on the server
-        sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "echo '${{ secrets.ENV }}' > .env"
-        
         sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST << 'EOF'
         echo "succeed ssh login"
           IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/chic_25_jamovi_be:latest"
           sudo docker pull $IMAGE
           sudo docker stop chic_25_jamovi_be || true
           sudo docker rm chic_25_jamovi_be || true
-          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 -v $(pwd)/.env:/app/.env $IMAGE || echo "Failed to start container"
+          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 $IMAGE || echo "Failed to start container"
           sudo docker logs chic_25_jamovi_be
           sudo docker system prune -af
         EOF
+
