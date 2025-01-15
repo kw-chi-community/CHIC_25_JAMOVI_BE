@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 
 from models import get_db, User
 from utils import verify_password, create_access_token, get_password_hash
-from schemas import UserCreate
 from crud import authenticate_user, create_user
 from logging import getLogger
 
@@ -44,12 +43,11 @@ async def login(
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
-    user_data: UserCreate,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    logger.info(f"Registering user: {user_data.email}")
     try:
-        new_user = create_user(db, user_data.email, user_data.password)
+        new_user = create_user(db, form_data.username, form_data.password)
         access_token = create_access_token(
             data={"user": new_user.email}
         )
