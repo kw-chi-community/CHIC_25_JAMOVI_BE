@@ -63,6 +63,7 @@ jobs:
           sudo docker pull $IMAGE
           sudo docker stop chic_25_jamovi_be || true
           sudo docker rm chic_25_jamovi_be || true
-          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 --env-file .env $IMAGE
+          sudo docker run -d --name chic_25_jamovi_be -p 8000:8000 --env-file .env $IMAGE || echo "Failed to start container"
+          sudo docker logs chic_25_jamovi_be
           sudo docker system prune -af
         EOF
