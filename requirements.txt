@@ -1,7 +1,21 @@
 fastapi
 uvicorn
+
+# db
 sqlalchemy
-python-dotenv
+pymysql
+
+# data processing..?
 rpy2
 pandas
-pymysql
+
+# env
+python-dotenv
+
+# auth
+passlib[bcrypt]
+python-jose[cryptography]
+
+# data validation
+pydantic[email]
+pydantic
