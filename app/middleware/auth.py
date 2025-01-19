@@ -12,9 +12,10 @@ ALGORITHM = os.getenv("JWT_ALGORITHM")
 
 async def auth_middleware(request: Request, call_next):
     # 인증 필요x 엔드포인트
-    public_paths = ["/auth/login", "/auth/register"] 
+    public_paths = ["/auth/login", "/auth/register"]
     
-    if request.url.path in public_paths:
+    # prefix가 /test or public_paths에 포함되면 인증x
+    if request.url.path.startswith("/test") or request.url.path in public_paths:
         response = await call_next(request)
         return response
 
