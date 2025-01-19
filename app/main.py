@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from api import test_router, auth
+from api import test_router, auth, project
 from middleware import auth_middleware
 from contextlib import asynccontextmanager
 from models import init_db
@@ -45,6 +45,7 @@ async def token_test(request: Request):
 
 app.include_router(test_router.router)
 app.include_router(auth.router)
+app.include_router(project.router, prefix="/projects", tags=["projects"])
 
 if __name__ == "__main__":
     logger.info("starting server")
