@@ -4,17 +4,11 @@ from api import test_router, auth
 from middleware import auth_middleware
 from contextlib import asynccontextmanager
 from models import init_db
-import logging
 import os
 from dotenv import load_dotenv
+from utils import logger
 
 load_dotenv()
-
-logger = logging.getLogger(__name__)
-
-logging.basicConfig(filename='jamovi_be.log', level=logging.INFO)
-
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,5 +47,6 @@ app.include_router(test_router.router)
 app.include_router(auth.router)
 
 if __name__ == "__main__":
+    logger.info("starting server")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -6,9 +6,8 @@ from fastapi.responses import JSONResponse
 from models import get_db, User
 from utils import verify_password, create_access_token, get_password_hash
 from crud import authenticate_user, create_user
-from logging import getLogger
+from utils import logger
 
-logger = getLogger(__name__)
 router = APIRouter(prefix="/auth")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
