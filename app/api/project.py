@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models import Project, get_db, ProjectPermission
-from app.api.auth import get_current_user
+from models import Project, get_db, ProjectPermission
+from .auth import auth_middleware
 
 router = APIRouter()
 
 @router.get("/projects", response_model=list)
 def get_user_projects(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(auth_middleware)
 ):
     """
     인증된 사용자가 만든 모든 프로젝트를 ID 순서대로 가져오는 엔드포인트
@@ -34,7 +34,6 @@ def get_user_projects(
 def get_user_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
 ):
     """
     인증된 사용자의 특정 프로젝트를 가져오거나,
