@@ -26,3 +26,7 @@ pydantic
 # logging
 logging
 icecream
+
+# langchain
+langchain-community
+langchain-google-genai
