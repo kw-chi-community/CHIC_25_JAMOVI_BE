@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What do you know about France?",
+    "answer": "Here is what I know:\nCapital: Paris\nLanguage: French\nFood: Wine and Cheese\nCurrency: Euro"
+  },
+  {
+    "question": "What do you know about Italy?",
+    "answer": "I know this:\nCapital: Rome\nLanguage: Italian\nFood: Pizza and Pasta\nCurrency: Euro"
+  },
+  {
+    "question": "What do you know about Greece?",
+    "answer": "I know this:\nCapital: Athens\nLanguage: Greek\nFood: Souvlaki and Feta Cheese\nCurrency: Euro"
+  }
+]
