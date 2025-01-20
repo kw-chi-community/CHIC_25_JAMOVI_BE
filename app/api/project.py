@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from models import Project, get_db, ProjectPermission
 from middleware import auth_middleware
 
-router = APIRouter()
+router = APIRouter(prefix="/projects")
 
-@router.get("/projects", response_model=list)
+@router.get("/", response_model=list)
 def get_user_projects(
     db: Session = Depends(get_db),
     current_user=Depends(auth_middleware)
@@ -30,7 +30,7 @@ def get_user_projects(
     ]
 
 
-@router.get("/projects/{project_id}", response_model=dict)
+@router.get("/{project_id}", response_model=dict)
 def get_user_project(
     project_id: int,
     db: Session = Depends(get_db),

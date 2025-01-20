@@ -2,8 +2,6 @@ from fastapi import APIRouter
 from services import llm_results
 from utils import logger
 
-router = APIRouter()
-
 router = APIRouter(prefix="/test")
 
 @router.get("/")
