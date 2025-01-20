@@ -1,19 +1,73 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from models import Project, get_db, ProjectPermission
-from middleware import auth_middleware
+from middleware.auth import get_current_user
+from schemas import ProjectCreate
+from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter(prefix="/projects")
+
+@router.post("/create")
+def create_project(
+    project: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    try:
+        existing_project = db.query(Project).filter(
+            Project.name == project.name,
+            Project.user_id == current_user["user"]
+        ).first()
+        
+        if existing_project:
+            raise HTTPException(
+                status_code=400,
+                detail="Project with this name already exists for this user"
+            )
+        
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            user_id=current_user["user"],
+            visibility="private"
+        )
+        
+        db.add(new_project)
+        db.commit()
+        db.refresh(new_project)
+        
+        return {
+            "success": True,
+            "detail": "Project created successfully",
+            "project_id": new_project.id,
+            "project_name": new_project.name,
+            "project_description": new_project.description,
+            "project_visibility": new_project.visibility,
+            "project_user_id": new_project.user_id
+        }
+        
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Database error occurred while creating project"
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Same name project already exists"
+        )
 
 @router.get("/", response_model=list)
 def get_user_projects(
     db: Session = Depends(get_db),
-    current_user=Depends(auth_middleware)
+    current_user=Depends(get_current_user)
 ):
     """
     인증된 사용자가 만든 모든 프로젝트를 ID 순서대로 가져오는 엔드포인트
     """
-    projects = db.query(Project).filter(Project.user_id == current_user.id).order_by(Project.id.asc()).all()
+    projects = db.query(Project).filter(Project.user_id == current_user["user"]).order_by(Project.id.asc()).all()
 
     if not projects:
         return []

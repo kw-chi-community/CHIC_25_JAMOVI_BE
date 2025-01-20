@@ -45,7 +45,7 @@ async def token_test(request: Request):
 
 app.include_router(test_router.router)
 app.include_router(auth.router)
-app.include_router(project.router, prefix="/projects", tags=["projects"])
+app.include_router(project.router)
 
 if __name__ == "__main__":
     logger.info("starting server")

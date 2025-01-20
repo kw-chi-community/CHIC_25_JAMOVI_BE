@@ -28,7 +28,7 @@ async def auth_middleware(request: Request, call_next):
         
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         
-        # request.state에 유저 정보(이메일) 저장
+        # request.state에 유저 정보(id) 저장
         request.state.user = payload
         
         response = await call_next(request)
@@ -38,4 +38,21 @@ async def auth_middleware(request: Request, call_next):
         return JSONResponse(
             status_code=401,
             content={"message": "invalid token"}
+        )
+
+async def get_current_user(request: Request):
+    try:
+        token = request.headers.get('Authorization')
+        if not token:
+            raise HTTPException(status_code=401, detail="not exist token")
+
+        token = token.split(" ")[1]
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+        
+    except (JWTError, IndexError):
+        raise HTTPException(
+            status_code=401,
+            detail="invalid token"
         )
