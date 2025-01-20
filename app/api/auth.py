@@ -30,7 +30,7 @@ async def login(
                 }
             )
         access_token = create_access_token(
-            data={"user": user.email},
+            data={"user": user.id},
         )
         return {"success": True, "token": access_token, "detail": "User logged in successfully"}
     except Exception as e:
@@ -48,7 +48,7 @@ async def register(
     try:
         new_user = create_user(db, form_data.username, form_data.password)
         access_token = create_access_token(
-            data={"user": new_user.email}
+            data={"user": new_user.id}
         )
         return {"success": True, "token": access_token, "detail": "User created successfully"}
     except Exception as e:
