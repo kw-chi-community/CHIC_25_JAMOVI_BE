@@ -21,9 +21,9 @@ async def login(
     try:
         user = authenticate_user(db, form_data.username, form_data.password)
         if not user:
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={
+                detail={
                     "success": False,
                     "token": None,
                     "detail": "Incorrect email or password"
@@ -33,10 +33,12 @@ async def login(
             data={"user": user.id},
         )
         return {"success": True, "token": access_token, "detail": "User logged in successfully"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"success": False, "token": None, "detail": str(e)}
+            detail={"success": False, "token": None, "detail": str(e)}
         )
 
 
@@ -52,7 +54,7 @@ async def register(
         )
         return {"success": True, "token": access_token, "detail": "User created successfully"}
     except Exception as e:
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"success": False, "token": None, "detail": str(e)}
+            detail={"success": False, "token": None, "detail": str(e)}
         )
