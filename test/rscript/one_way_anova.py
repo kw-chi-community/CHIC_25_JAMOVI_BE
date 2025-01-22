@@ -1,9 +1,12 @@
 import rpy2.robjects as ro
 from icecream import ic
 
+group1 = "school"
+group2 = "home"
+
 groups_data = {
-    'school': ro.FloatVector([1,2,1,3,2,1]),
-    'home': ro.FloatVector([5,4,5,5,3,4]),
+    group1: ro.FloatVector([1,2,1,3,2,1]),
+    group2: ro.FloatVector([5,4,5,5,3,4]),
 }
 
 conf_level = 0.95
