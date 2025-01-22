@@ -108,12 +108,47 @@ class OneWayANOVAResult(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
-    df = Column(Integer)
-    sum_sq = Column(Float)
-    mean_sq = Column(Float)
-    f_value = Column(Float)
-    p_value = Column(Float)
+    between_sum_sq = Column(Float)
+    between_df = Column(Integer)
+    between_mean_sq = Column(Float)
+    between_f = Column(Float)
+    between_sig = Column(Float)
+
+    within_sum_sq = Column(Float)
+    within_df = Column(Integer)
+    within_mean_sq = Column(Float)
     
+    total_sum_sq = Column(Float)
+    total_df = Column(Integer)
+
+    """
+    각 그룹별 통계
+    {'home': {'ci_lower': 0.9949838755556591,
+                'ci_upper': 2.3383494577776744,
+                'mean': 1.6666666666666667,
+                'n': 6,
+                'sd': 0.816496580927726,
+                'se': 0.33333333333333337},
+    'school': {'ci_lower': 3.6616505422223256,
+                'ci_upper': 5.0050161244443405,
+                'mean': 4.333333333333333,
+                'n': 6,
+                'sd': 0.816496580927726,
+                'se': 0.33333333333333337}}
+    """
+    group_descriptive_stats = Column(JSON)
+
+    """
+    전체 통계
+    {'ci_lower': 2.17287617770681,
+    'ci_upper': 3.82712382229319,
+    'mean': 3.0,
+    'n': 12,
+    'sd': 1.5954480704349312,
+    'se': 0.4605661864718383}
+    """
+    total_descriptive_stats = Column(JSON) 
+        
     statistical_test = relationship("StatisticalTest", back_populates="anova_results")
 
 class PairedTTestResult(Base):
@@ -124,8 +159,35 @@ class PairedTTestResult(Base):
     t_statistic = Column(Float)
     df = Column(Integer)
     p_value = Column(Float)
-    mean_difference = Column(Float)
-    confidence_interval = Column(JSON)  # lower, upper
+    group1_confidence_interval = Column(Float)
+    group2_confidence_interval = Column(Float)
+    group1_mean = Column(Float)
+    group2_mean = Column(Float)
+    conf_level = Column(Float)
+    
+    stats_group1_max = Column(Float)
+    stats_group1_min = Column(Float)
+    stats_group1_median = Column(Float)
+    stats_group1_mean = Column(Float)
+    stats_group1_sd = Column(Float)
+    stats_group1_se = Column(Float)
+    stats_group1_n = Column(Float)
+    
+    stats_group2_max = Column(Float)
+    stats_group2_min = Column(Float)
+    stats_group2_median = Column(Float)
+    stats_group2_mean = Column(Float)
+    stats_group2_sd = Column(Float)
+    stats_group2_se = Column(Float)
+    stats_group2_n = Column(Float)
+
+    stats_diff_max = Column(Float)
+    stats_diff_min = Column(Float)
+    stats_diff_median = Column(Float)
+    stats_diff_mean = Column(Float)
+    stats_diff_sd = Column(Float)
+    stats_diff_se = Column(Float)
+    stats_diff_n = Column(Float)
     
     statistical_test = relationship("StatisticalTest", back_populates="paired_ttest_results")
 
@@ -137,8 +199,27 @@ class IndependentTTestResult(Base):
     t_statistic = Column(Float)
     df = Column(Integer)
     p_value = Column(Float)
-    confidence_interval = Column(JSON)  # lower, upper
-    sample_estimates = Column(JSON)  # 각 그룹별 mean, std_dev, n
+    group1_confidence_interval = Column(Float)
+    group2_confidence_interval = Column(Float)
+    group1_mean = Column(Float)
+    group2_mean = Column(Float)
+    conf_level = Column(Float)
+    
+    stats_group1_max = Column(Float)
+    stats_group1_min = Column(Float)
+    stats_group1_median = Column(Float)
+    stats_group1_mean = Column(Float)
+    stats_group1_sd = Column(Float)
+    stats_group1_se = Column(Float)
+    stats_group1_n = Column(Float)
+    
+    stats_group2_max = Column(Float)
+    stats_group2_min = Column(Float)
+    stats_group2_median = Column(Float)
+    stats_group2_mean = Column(Float)
+    stats_group2_sd = Column(Float)
+    stats_group2_se = Column(Float)
+    stats_group2_n = Column(Float)
     
     statistical_test = relationship("StatisticalTest", back_populates="independent_ttest_results")
 
@@ -150,8 +231,19 @@ class OneSampleTTestResult(Base):
     t_statistic = Column(Float)
     df = Column(Integer)
     p_value = Column(Float)
-    confidence_interval = Column(JSON)  # lower, upper
-    sample_estimates = Column(JSON)  # mean, std_dev, n
+    confidence_interval = Column(Float)
+    conf_level = Column(Float)
+    mu = Column(Float)
+    stats_min = Column(Float)
+    stats_max = Column(Float)
+    stats_median = Column(Float)
+    stats_mean = Column(Float)
+    stats_sd = Column(Float)
+    stats_se = Column(Float)
+    stats_n = Column(Float)
+    stats_q1 = Column(Float)
+    stats_q3 = Column(Float)
+    stats_var = Column(Float)
     
     statistical_test = relationship("StatisticalTest", back_populates="one_sample_ttest_results")
 
