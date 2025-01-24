@@ -296,7 +296,6 @@ def paired_t_test(group1, group2, group1_data, group2_data, conf_level):
 
     return result_dict
 
-
 def one_way_anova(groups_data: dict, conf_level):
     r_groups_data = {
         group: ro.FloatVector(data) 
