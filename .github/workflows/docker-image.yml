@@ -63,10 +63,7 @@ jobs:
             sudo docker pull $IMAGE
             sudo docker stop chic_25_jamovi_be || true
             sudo docker rm chic_25_jamovi_be || true
-            sudo docker run -d --name chic_25_jamovi_be \
-              --network host \
-              --add-host host.docker.internal:host-gateway \
-              -p 8000:8000 $IMAGE || echo "Failed to start container"
+            sudo docker run -d --name chic_25_jamovi_be --network host -p 8000:8000 $IMAGE || echo "Failed to start container"
             sudo docker logs chic_25_jamovi_be
             sudo docker system prune -af
           EOF
