@@ -41,12 +41,24 @@ class Project(Base):
     name = Column(String(255))
     visibility = Column(String(50))  # public_all_editor, public_all_viewer, private, etc
     description = Column(Text)
+    created_at = Column(DateTime, default=datetime.now)
     modified_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
     user = relationship("User", back_populates="projects")
     permissions = relationship("ProjectPermission", back_populates="project")
     statistical_tests = relationship("StatisticalTest", back_populates="project")
     tables = relationship("TableData", back_populates="project")
+
+class TableData(Base):
+    __tablename__ = "table_data"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    row_num = Column(Integer)
+    col_num = Column(Integer)
+    value = Column(String(255))
+    
+    project = relationship("Project", back_populates="tables")
 
 class ProjectPermission(Base): # etc일 경우 해당 테이블에서 권한 관리
     __tablename__ = "project_permissions"
@@ -82,17 +94,6 @@ class StatisticalTest(Base):
     paired_ttest_results = relationship("PairedTTestResult", back_populates="statistical_test")
     independent_ttest_results = relationship("IndependentTTestResult", back_populates="statistical_test")
     one_sample_ttest_results = relationship("OneSampleTTestResult", back_populates="statistical_test")
-
-class TableData(Base):
-    __tablename__ = "table_data"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"))
-    row_num = Column(Integer)
-    col_num = Column(Integer)
-    value = Column(String(255))
-    
-    project = relationship("Project", back_populates="tables")
 
 class SelectedTableData(Base):
     __tablename__ = "selected_table_data"
