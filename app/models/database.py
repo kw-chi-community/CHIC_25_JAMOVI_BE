@@ -103,7 +103,7 @@ class SelectedTableData(Base):
     row_num = Column(Integer)
     col_num = Column(Integer)
     value = Column(String(255))
-    is_group = Column(Boolean)
+    group_name = Column(String(255))
     
     statistical_test = relationship("StatisticalTest", back_populates="selected_data")
 
