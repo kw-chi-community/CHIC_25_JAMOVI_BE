@@ -1,9 +1,10 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, WebSocket
 from fastapi.responses import JSONResponse
 from typing import Optional
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
+from utils import logger
 
 load_dotenv()
 
@@ -40,18 +41,32 @@ async def auth_middleware(request: Request, call_next):
             content={"message": "invalid token"}
         )
 
-async def get_current_user(request: Request):
+async def get_current_user(request: Request = None, websocket: WebSocket = None):
     try:
-        token = request.headers.get('Authorization')
+        logger.info(f"get_current_user")
+        if websocket:
+            logger.info(f"websocket: {websocket}")
+            token = websocket.query_params.get('token')
+        else:
+            logger.info(f"request: {request}")
+            token = request.headers.get('Authorization')
+
         if not token:
+            if websocket:
+                await websocket.close(code=4001, reason="Token not found")
+                return None
             raise HTTPException(status_code=401, detail="not exist token")
 
-        token = token.split(" ")[1]
+        if not websocket:
+            token = token.split(" ")[1]
         
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
         
     except (JWTError, IndexError):
+        if websocket:
+            await websocket.close(code=4002, reason="Invalid token")
+            return None
         raise HTTPException(
             status_code=401,
             detail="invalid token"
