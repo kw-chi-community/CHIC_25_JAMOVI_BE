@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from models import Project, get_db, ProjectPermission
+from models import Project, get_db, ProjectPermission, TableData
 from middleware.auth import get_current_user
 from schemas import ProjectCreate
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi import WebSocket
+from utils import logger
+from fastapi import WebSocketDisconnect
 
 router = APIRouter(prefix="/projects")
 
@@ -123,3 +126,78 @@ def get_user_project(
         ]
 
     return response
+
+
+@router.websocket("/save")
+async def save_project_table(
+    websocket: WebSocket,
+    project_id: int,
+    db: Session = Depends(get_db),
+):
+    current_user = await get_current_user(websocket=websocket)
+    if not current_user:
+        return
+    
+    try:
+        await websocket.accept()
+        logger.info(f"current_user: {current_user}")
+        
+        permission = db.query(ProjectPermission).filter(
+            ProjectPermission.project_id == project_id,
+            ProjectPermission.user_id == current_user["user"]
+        ).first()
+        
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            await websocket.send_json({"success": False, "message": "project not found"})
+            await websocket.close()
+            return
+            
+        if not permission and not (
+            project.user_id == current_user["user"] or 
+            project.visibility == "public_all_editor"
+        ):
+            await websocket.send_json({"success": False, "message": "no permission to edit"})
+            await websocket.close()
+            return
+            
+        try:
+            while True:
+                data = await websocket.receive_json()
+                row_num = data.get("row")
+                col_num = data.get("col")
+                value = data.get("value")
+                
+                table_data = db.query(TableData).filter(
+                    TableData.project_id == project_id,
+                    TableData.row_num == row_num,
+                    TableData.col_num == col_num
+                ).first()
+                
+                if table_data:
+                    table_data.value = value
+                else:
+                    table_data = TableData(
+                        project_id=project_id,
+                        row_num=row_num,
+                        col_num=col_num,
+                        value=value
+                    )
+                    db.add(table_data)
+                    
+                db.commit()
+                await websocket.send_json({"success": True})
+                
+        except WebSocketDisconnect:
+            logger.info("websocket disconnected")
+        except Exception as e:
+            logger.error(f"Error: {str(e)}")
+            await websocket.send_json({"success": False, "message": str(e)})
+            await websocket.close()
+            
+    except Exception as e:
+        logger.error(f"websocket error: {str(e)}")
+        try:
+            await websocket.close(code=4000)
+        except:
+            pass
