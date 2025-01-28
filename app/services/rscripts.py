@@ -4,7 +4,16 @@ from utils import logger
 
 logger.info("rscripts initialized")
 
-def independent_t_test(group1, group2, group1_data, group2_data, conf_level):
+def independent_t_test(group1: str, group2: str, group1_data: list, group2_data: list, conf_level: float):
+    """
+    args
+    group1: str = "group1"
+    group2: str = "group2"
+    group1_data: list = [1,2,1,3,2,1]
+    group2_data: list = [5,4,5,5,3,4]
+    conf_level: float = 0.95
+    """
+    
     group1_data = ro.FloatVector(group1_data)
     group2_data = ro.FloatVector(group2_data)
 
@@ -99,7 +108,14 @@ def independent_t_test(group1, group2, group1_data, group2_data, conf_level):
     }
     return result_dict
 
-def one_sample_t_test(name, data, mu, conf_level):
+def one_sample_t_test(name: str, data: list, mu: float, conf_level: float):
+    """
+    args
+    name: str = "school"
+    data: list = [1,2,1,3,2,1]
+    mu: float = 3
+    conf_level: float = 0.95
+    """
     data = ro.FloatVector(data)
 
     data_str = ','.join(str(x) for x in data)
@@ -182,7 +198,15 @@ def one_sample_t_test(name, data, mu, conf_level):
     }
     return result
 
-def paired_t_test(group1, group2, group1_data, group2_data, conf_level):
+def paired_t_test(group1: str, group2: str, group1_data: list, group2_data: list, conf_level: float):
+    """
+    args
+    group1: str = "group1"
+    group2: str = "group2"
+    group1_data: list = [1,2,1,3,2,1]
+    group2_data: list = [5,4,5,5,3,4]
+    conf_level: float = 0.95
+    """
     group1_data = ro.FloatVector(group1_data)
     group2_data = ro.FloatVector(group2_data)
 
@@ -296,7 +320,13 @@ def paired_t_test(group1, group2, group1_data, group2_data, conf_level):
 
     return result_dict
 
-def one_way_anova(groups_data: dict, conf_level):
+def one_way_anova(groups_data: dict, conf_level: float):
+    """
+    args
+    groups_data: dict = {"group1": [1,2,1,3,2,1], "group2": [5,4,5,5,3,4], "group3": [7,8,6,7,8,7]}
+    conf_level: float = 0.95
+    """
+    
     r_groups_data = {
         group: ro.FloatVector(data) 
         for group, data in groups_data.items()
@@ -411,8 +441,6 @@ def one_way_anova(groups_data: dict, conf_level):
         "group_descriptive_stats": descriptive_stats,
         "total_descriptive_stats": total_stats
     }
-
-
 
 if __name__ == "__main__":
     itt = independent_t_test("school", "home", [1,2,1,3,2,1], [5,4,5,5,3,4], 0.95)
