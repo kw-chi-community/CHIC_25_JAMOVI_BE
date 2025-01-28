@@ -2,11 +2,13 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Boolean, 
-    ForeignKey, Text, JSON
+    ForeignKey, Text, JSON, DateTime
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from utils import logger
+from datetime import datetime
+
 
 load_dotenv()
 
@@ -39,6 +41,7 @@ class Project(Base):
     name = Column(String(255))
     visibility = Column(String(50))  # public_all_editor, public_all_viewer, private, etc
     description = Column(Text)
+    modified_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
     user = relationship("User", back_populates="projects")
     permissions = relationship("ProjectPermission", back_populates="project")
