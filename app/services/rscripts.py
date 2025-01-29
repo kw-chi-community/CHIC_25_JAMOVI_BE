@@ -4,18 +4,25 @@ from utils import logger
 
 logger.info("rscripts initialized")
 
-def independent_t_test(group1: str, group2: str, group1_data: list, group2_data: list, conf_level: float):
+def _normalize_conf_level(conf_level: float) -> float:
+    if conf_level > 1:
+        return conf_level / 100
+    return conf_level
+
+def independent_t_test(groups_data: dict, conf_level: float):
     """
     args
-    group1: str = "group1"
-    group2: str = "group2"
-    group1_data: list = [1,2,1,3,2,1]
-    group2_data: list = [5,4,5,5,3,4]
+    groups_data: dict = {"group1": [1,2,1,3,2,1], "group2": [5,4,5,5,3,4]}
     conf_level: float = 0.95
     """
+    conf_level = _normalize_conf_level(conf_level)
+    if len(groups_data) != 2:
+        raise ValueError("Exactly two groups must be provided")
     
-    group1_data = ro.FloatVector(group1_data)
-    group2_data = ro.FloatVector(group2_data)
+    group_names = list(groups_data.keys())
+    group1, group2 = group_names
+    group1_data = ro.FloatVector(groups_data[group1])
+    group2_data = ro.FloatVector(groups_data[group2])
 
     r_code = """
     t_test_result <- t.test(x = c(%s), 
@@ -108,15 +115,19 @@ def independent_t_test(group1: str, group2: str, group1_data: list, group2_data:
     }
     return result_dict
 
-def one_sample_t_test(name: str, data: list, mu: float, conf_level: float):
+def one_sample_t_test(group_data: dict, mu: float, conf_level: float):
     """
     args
-    name: str = "school"
-    data: list = [1,2,1,3,2,1]
+    group_data: dict = {"school": [1,2,1,3,2,1]}
     mu: float = 3
     conf_level: float = 0.95
     """
-    data = ro.FloatVector(data)
+    conf_level = _normalize_conf_level(conf_level)
+    if len(group_data) != 1:
+        raise ValueError("Exactly one group must be provided")
+    
+    group_name = list(group_data.keys())[0]
+    data = ro.FloatVector(group_data[group_name])
 
     data_str = ','.join(str(x) for x in data)
 
@@ -177,38 +188,45 @@ def one_sample_t_test(name: str, data: list, mu: float, conf_level: float):
     confidence_interval_lower, confidence_interval_upper = confidence_interval
 
     result = {
-        "group_name": name,
-        "t_statistic": t_statistic,
-        "df": degrees_of_freedom,
-        "p_value": p_value,
-        "confidence_interval_lower": confidence_interval_lower,
-        "confidence_interval_upper": confidence_interval_upper,
-        "conf_level": conf_level,
-        "mu": mu,
-        "stats_min": min,
-        "stats_max": max,
-        "stats_median": median,
-        "stats_mean": mean,
-        "stats_sd": std_dev,
-        "stats_se": se,
-        "stats_n": n,
-        "stats_q1": q1,
-        "stats_q3": q3,
-        "stats_var": var,
+        "group_stats": {
+            "group_name": group_name,
+            "stats_min": min,
+            "stats_max": max,
+            "stats_median": median,
+            "stats_mean": mean,
+            "stats_sd": std_dev,
+            "stats_se": se,
+            "stats_n": n,
+            "stats_q1": q1,
+            "stats_q3": q3,
+            "stats_var": var,
+        },
+        "test_stats": {
+            "t_statistic": t_statistic,
+            "df": degrees_of_freedom,
+            "p_value": p_value,
+            "confidence_interval_lower": confidence_interval_lower,
+            "confidence_interval_upper": confidence_interval_upper,
+            "conf_level": conf_level,
+            "mu": mu,
+        }
     }
     return result
 
-def paired_t_test(group1: str, group2: str, group1_data: list, group2_data: list, conf_level: float):
+def paired_t_test(groups_data: dict, conf_level: float):
     """
     args
-    group1: str = "group1"
-    group2: str = "group2"
-    group1_data: list = [1,2,1,3,2,1]
-    group2_data: list = [5,4,5,5,3,4]
+    groups_data: dict = {"group1": [1,2,1,3,2,1], "group2": [5,4,5,5,3,4]}
     conf_level: float = 0.95
     """
-    group1_data = ro.FloatVector(group1_data)
-    group2_data = ro.FloatVector(group2_data)
+    conf_level = _normalize_conf_level(conf_level)
+    if len(groups_data) != 2:
+        raise ValueError("Exactly two groups must be provided")
+    
+    group_names = list(groups_data.keys())
+    group1, group2 = group_names
+    group1_data = ro.FloatVector(groups_data[group1])
+    group2_data = ro.FloatVector(groups_data[group2])
 
     r_code = """
     t_test_result <- t.test(x = c(%s), 
@@ -326,6 +344,7 @@ def one_way_anova(groups_data: dict, conf_level: float):
     groups_data: dict = {"group1": [1,2,1,3,2,1], "group2": [5,4,5,5,3,4], "group3": [7,8,6,7,8,7]}
     conf_level: float = 0.95
     """
+    conf_level = _normalize_conf_level(conf_level)
     
     r_groups_data = {
         group: ro.FloatVector(data) 
@@ -443,13 +462,13 @@ def one_way_anova(groups_data: dict, conf_level: float):
     }
 
 if __name__ == "__main__":
-    itt = independent_t_test("school", "home", [1,2,1,3,2,1], [5,4,5,5,3,4], 0.95)
+    itt = independent_t_test({"school": [1,2,1,3,2,1], "home": [5,4,5,5,3,4]}, 0.95)
     ic(itt)
 
-    ots = one_sample_t_test("school", [1,2,1,3,2,1], 3, 0.95)
+    ots = one_sample_t_test({"school": [1,2,1,3,2,1]}, 3, 0.95)
     ic(ots)
 
-    pt = paired_t_test("school", "home", [1,2,1,3,2,1], [5,4,5,5,3,4], 0.95)
+    pt = paired_t_test({"school": [1,2,1,3,2,1], "home": [5,4,5,5,3,4]}, 0.95)
     ic(pt)
 
     owa = one_way_anova({"group1": [1,2,1,3,2,1], "group2": [5,4,5,5,3,4], "group3": [7,8,6,7,8,7]}, 0.95)

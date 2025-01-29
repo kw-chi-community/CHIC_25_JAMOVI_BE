@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Boolean, 
-    ForeignKey, Text, JSON, DateTime
+    ForeignKey, Text, JSON, DateTime, ARRAY
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -76,36 +76,34 @@ class StatisticalTest(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
-    alias = Column(String(255))
-    confidence_level = Column(Float)
-    test_method = Column(String(100))
-    experimental_design = Column(String(255))
-    subject_info = Column(Text)
-    conclusion = Column(Text)
-    results = Column(Text)
-    image_url = Column(String(255))
-    normality_satisfied = Column(Boolean)
-    homoscedasticity_satisfied = Column(Boolean)
-    independence_satisfied = Column(Boolean)
+    alias = Column(String(255)) # 그.. 유저한테 보이는 이름?이라 해야하나 그거
+    # confidence_level = Column(Float) # 신뢰 수준
+    confidence_interval = Column(Float) # 신뢰 수준
+    test_method = Column(String(100)) # 통계 방법 // OneWayANOVA, PairedTTest, IndependentTTest, OneSampleTTest
+    hypothesis = Column(String(100)) # 가설 유형 // RightTailed, TwoTailedSame, TwoTailedDiff, RightTailed, LeftTailed
+    missing_value_handling = Column(String(100)) # 결측치 처리 방법 // pairwise, ListwiseDeletion
+    mean_difference = Column(Float) # 평균 차이
+    effect_size = Column(String(100)) # 효과 크기 유형 // Eta_Squared Cohens_D, Standardized_Mean_Difference, ""
+    effect_size_value = Column(Float) # 효과 크기 값
+    descriptive_stats = Column(Boolean) # 기술 통계 여부
+
+    value = Column(JSON)
+
+    experimental_design = Column(Text) # 실험 설계 방식
+    subject_info = Column(Text) # 피험자 정보
+    conclusion = Column(Text) # llm 결론
+    results = Column(Text) # llm 결과
+    image_url = Column(String(255)) # 이미지 저장 경로
+
+    normality_satisfied = Column(Boolean) # 정규성 만족 여부 
+    homoscedasticity_satisfied = Column(Boolean) # 등분산성 만족 여부 
+    independence_satisfied = Column(Boolean) # 독립성 만족 여부 
     
     project = relationship("Project", back_populates="statistical_tests")
-    selected_data = relationship("SelectedTableData", back_populates="statistical_test")
     anova_results = relationship("OneWayANOVAResult", back_populates="statistical_test")
     paired_ttest_results = relationship("PairedTTestResult", back_populates="statistical_test")
     independent_ttest_results = relationship("IndependentTTestResult", back_populates="statistical_test")
     one_sample_ttest_results = relationship("OneSampleTTestResult", back_populates="statistical_test")
-
-class SelectedTableData(Base):
-    __tablename__ = "selected_table_data"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    statistical_test_id = Column(Integer, ForeignKey("statistical_tests.id"))
-    row_num = Column(Integer)
-    col_num = Column(Integer)
-    value = Column(String(255))
-    group_name = Column(String(255))
-    
-    statistical_test = relationship("StatisticalTest", back_populates="selected_data")
 
 class OneWayANOVAResult(Base):
     __tablename__ = "oneway_anova_results"
