@@ -77,7 +77,7 @@ class StatisticalTest(Base):
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
     alias = Column(String(255))
-    significance_level = Column(Float)
+    confidence_level = Column(Float)
     test_method = Column(String(100))
     experimental_design = Column(String(255))
     subject_info = Column(Text)
