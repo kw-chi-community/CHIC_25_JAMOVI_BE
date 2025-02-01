@@ -10,7 +10,7 @@ from langsmith import traceable
 from google.generativeai import configure
 import json
 
-API_KEY = "AIzaSyCPxYucd1omrrmMa1nPIbB-z-XO1mgsjfU"
+API_KEY = "API 인증 키"
 
 # ✅ Google Gemini API 설정
 if API_KEY:
