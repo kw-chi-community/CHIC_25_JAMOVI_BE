@@ -1,6 +1,6 @@
 import rpy2.robjects as ro
 from icecream import ic
-from utils import logger
+from app.utils import logger
 
 logger.info("rscripts initialized")
 

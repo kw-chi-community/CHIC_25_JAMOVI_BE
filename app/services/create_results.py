@@ -5,7 +5,7 @@ import os
 from langchain.prompts import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 import json
-from utils import logger
+from app.utils import logger
 import time
 from langsmith import traceable
 import re
