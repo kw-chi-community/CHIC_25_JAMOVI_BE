@@ -9,6 +9,11 @@ import time
 from langsmith import traceable
 from google.generativeai import configure
 import json
+import logging
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
 
 API_KEY = "API 인증 키"
 
@@ -238,6 +243,102 @@ def display_result(result):
     print(f"⏳ 실행 시간: {execution_time} 초\n")
     print(output_text)
     print("\n================================\n")
+
+
+def generate_llm_results(test_type: str, variables: dict) -> str:
+    """
+    전달받은 변수들을 이용해 독립표본 t‑검정 결과 보고서 문자열을 생성합니다.
+    """
+    if test_type == "independent_t_test":
+        # 그룹1 정보
+        group1_name    = variables.get("group1_name", "그룹1")
+        group1_n       = variables.get("group1_stats_n", "N/A")
+        group1_min     = variables.get("group1_stats_min", "N/A")
+        group1_max     = variables.get("group1_stats_max", "N/A")
+        group1_mean    = variables.get("group1_stats_mean", "N/A")
+        group1_median  = variables.get("group1_stats_median", "N/A")
+        group1_sd      = variables.get("group1_stats_sd", "N/A")
+        group1_se      = variables.get("group1_stats_se", "N/A")
+        
+        # 그룹2 정보
+        group2_name    = variables.get("group2_name", "그룹2")
+        group2_n       = variables.get("group2_stats_n", "N/A")
+        group2_min     = variables.get("group2_stats_min", "N/A")
+        group2_max     = variables.get("group2_stats_max", "N/A")
+        group2_mean    = variables.get("group2_stats_mean", "N/A")
+        group2_median  = variables.get("group2_stats_median", "N/A")
+        group2_sd      = variables.get("group2_stats_sd", "N/A")
+        group2_se      = variables.get("group2_stats_se", "N/A")
+        
+        # 검정 통계량 및 추가 정보
+        t_value        = variables.get("t 통계량", "N/A")
+        df             = variables.get("df 자유도", "N/A")
+        p_value        = variables.get("p value", "N/A")
+        ci_lower       = variables.get("confidence_interval_lower", "N/A")
+        ci_upper       = variables.get("confidence_interval_upper", "N/A")
+        conf_level     = variables.get("conf_level", "N/A")
+        alpha          = variables.get("유의수준", "N/A")
+        design         = variables.get("실험설계방법", "N/A")
+        subject_info   = variables.get("피험자정보", "N/A")
+        normality      = variables.get("정규성만족여부", "N/A")
+        homogeneity    = variables.get("등분산성만족여부", "N/A")
+        independence   = variables.get("독립성만족여부", "N/A")
+        
+        # 결과 보고서 구성
+        result = f"=== 독립표본 t-검정 결과 ===\n\n"
+        result += f"[{group1_name}]\n"
+        result += f"  - n: {group1_n}\n"
+        result += f"  - 최소값: {group1_min}, 최대값: {group1_max}\n"
+        result += f"  - 평균: {group1_mean}, 중앙값: {group1_median}\n"
+        result += f"  - 표준편차: {group1_sd}, 표준오차: {group1_se}\n\n"
+        result += f"[{group2_name}]\n"
+        result += f"  - n: {group2_n}\n"
+        result += f"  - 최소값: {group2_min}, 최대값: {group2_max}\n"
+        result += f"  - 평균: {group2_mean}, 중앙값: {group2_median}\n"
+        result += f"  - 표준편차: {group2_sd}, 표준오차: {group2_se}\n\n"
+        result += f"검정 통계량: t({df}) = {t_value}, p = {p_value}\n"
+        result += f"{conf_level}% 신뢰구간: [{ci_lower}, {ci_upper}]\n\n"
+        result += f"유의수준: {alpha}\n"
+        result += f"실험설계방법: {design}\n"
+        result += f"피험자정보: {subject_info}\n"
+        result += f"정규성 만족 여부: {normality}\n"
+        result += f"등분산성 만족 여부: {homogeneity}\n"
+        result += f"독립성 만족 여부: {independence}\n"
+        return result
+    else:
+        return "지원하지 않는 분석 유형입니다."
+
+@router.websocket("/ws/llm_results")
+async def websocket_llm_results(websocket: WebSocket):
+    """
+    클라이언트에서 분석 요청(JSON: test_type, variables)을 받으면
+    결과 보고서를 생성하여 WebSocket 메시지로 반환합니다.
+    """
+    await websocket.accept()
+    try:
+        while True:
+            # 클라이언트로부터 JSON 메시지 수신
+            data = await websocket.receive_json()
+            test_type = data.get("test_type")
+            variables = data.get("variables")
+            
+            if not test_type or not variables:
+                await websocket.send_json({
+                    "error": "올바른 payload가 아닙니다. (필수: test_type, variables)"
+                })
+                continue
+            
+            # 결과 보고서 생성
+            result = generate_llm_results(test_type, variables)
+            
+            # 결과를 클라이언트에 전송
+            await websocket.send_json({"result": result})
+    except WebSocketDisconnect:
+        logger.info("클라이언트가 websocket_llm_results에서 연결 해제됨")
+    except Exception as e:
+        logger.error(f"websocket_llm_results 오류: {str(e)}")
+        await websocket.send_json({"error": str(e)})
+        await websocket.close()
 
 # ✅ 실행 예시
 if __name__ == "__main__":
