@@ -12,7 +12,7 @@ from app.models import (
     get_db
 )
 
-router = APIRouter(prefix="/stats", tags=["Statistics"])
+router = APIRouter(prefix="/results", tags=["Statistics"])
 
 
 # 공통 응답 모델
@@ -71,7 +71,7 @@ StatisticalResult = Union[
 ]
 
 
-@router.get("/results/{test_id}", response_model=StatisticalResult)
+@router.get("/{test_id}", response_model=StatisticalResult)
 async def get_statistical_result(
         test_id: int,
         db: Session = Depends(get_db)
