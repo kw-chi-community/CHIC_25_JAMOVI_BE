@@ -1,3 +1,4 @@
 from .auth import UserCreate
-from .project import ProjectCreate
-from .statistics import StatisticRequest
+from .project import ProjectCreate, ProjectNameUpdate
+from .statistics import StatisticRequest, RenameStatisticRequest
+from .analyze import ExperimentData

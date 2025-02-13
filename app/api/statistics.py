@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from models import Project, get_db, ProjectPermission, TableData, StatisticalTest, OneWayANOVAResult, PairedTTestResult, IndependentTTestResult, OneSampleTTestResult
 from middleware.auth import get_current_user
-from schemas import ProjectCreate, StatisticRequest
+from schemas import ProjectCreate, StatisticRequest, RenameStatisticRequest
 from sqlalchemy.exc import SQLAlchemyError
 from utils import logger
 from schemas import StatisticRequest
 from services import one_sample_t_test, independent_t_test, one_way_anova, paired_t_test
 
-router = APIRouter(prefix="/statistics")
+router = APIRouter(prefix="/statistics", tags=["Statistics"])
 
 @router.post("/run")
 async def run_statistic(
@@ -255,3 +255,99 @@ async def run_statistic(
     except Exception as e:
         logger.error(f"Error during statistical analysis: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.delete("/delete/{test_id}", response_model=dict)
+async def delete_statistic_result(
+    test_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    지정된 test_id에 해당하는 통계 결과(StatisticalTest와 관련 결과)를 삭제하는 엔드포인트.
+    해당 테스트가 속한 프로젝트의 소유자만 삭제할 수 있도록 권한을 확인합니다.
+    """
+    # StatisticalTest 레코드 조회
+    test = db.query(StatisticalTest).filter(StatisticalTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test result not found")
+    
+    # 테스트가 속한 프로젝트 조회 및 소유자 권한 확인
+    project = db.query(Project).filter(Project.id == test.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Associated project not found")
+    if project.user_id != current_user["user"]:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this test result")
+    
+    # 테스트 유형에 따라 관련 결과 레코드를 먼저 삭제
+    if test.test_method == "OneWayANOVA":
+        result_row = db.query(OneWayANOVAResult).filter(
+            OneWayANOVAResult.statistical_test_id == test_id
+        ).first()
+    elif test.test_method == "PairedTTest":
+        result_row = db.query(PairedTTestResult).filter(
+            PairedTTestResult.statistical_test_id == test_id
+        ).first()
+    elif test.test_method == "IndependentTTest":
+        result_row = db.query(IndependentTTestResult).filter(
+            IndependentTTestResult.statistical_test_id == test_id
+        ).first()
+    elif test.test_method == "OneSampleTTest":
+        result_row = db.query(OneSampleTTestResult).filter(
+            OneSampleTTestResult.statistical_test_id == test_id
+        ).first()
+    else:
+        result_row = None
+
+    if result_row:
+        db.delete(result_row)
+    
+    # 기본 StatisticalTest 레코드 삭제
+    db.delete(test)
+    
+    try:
+        db.commit()
+        return {"success": True, "detail": "Test result deleted successfully"}
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Database error during deletion: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error occurred while deleting test result")
+    
+@router.put("/rename/{test_id}", response_model=dict)
+async def rename_statistic_result(
+    test_id: int,
+    request: RenameStatisticRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    지정된 test_id에 해당하는 통계 결과의 alias(이름)을 변경하는 엔드포인트.
+    해당 테스트가 속한 프로젝트의 소유자만 이름을 변경할 수 있습니다.
+    """
+    # StatisticalTest 레코드 조회
+    test = db.query(StatisticalTest).filter(StatisticalTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test result not found")
+    
+    # 해당 테스트가 속한 프로젝트 조회 및 소유자 권한 확인
+    project = db.query(Project).filter(Project.id == test.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Associated project not found")
+    if project.user_id != current_user["user"]:
+        raise HTTPException(status_code=403, detail="Not authorized to update this test result")
+    
+    # alias 업데이트
+    test.alias = request.new_alias
+    
+    try:
+        db.commit()
+        db.refresh(test)
+        return {
+            "success": True,
+            "detail": "Test result renamed successfully",
+            "test_id": test.id,
+            "new_alias": test.alias
+        }
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Database error during renaming: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error occurred while renaming test result")

@@ -34,3 +34,6 @@ class StatisticRequest(BaseModel):
     effectSizeValue: float
     descriptiveStats: bool
     value: Dict[str, List[Union[int, float]]]
+
+class RenameStatisticRequest(BaseModel):
+    new_alias: str
