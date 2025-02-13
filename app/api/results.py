@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Union
 from typing import Optional, Dict, Any, List # noqa
 
-from app.models import (
+from models import (
     StatisticalTest,
     OneWayANOVAResult,
     PairedTTestResult,

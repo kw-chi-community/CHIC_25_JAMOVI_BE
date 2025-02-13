@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
-from app.models import (
+from models import (
     StatisticalTest,
     Project,
     User,

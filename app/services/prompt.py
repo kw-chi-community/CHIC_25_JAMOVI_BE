@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 import os
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
-from app.services.llm import llm
-from app.utils.logger import logger
+from services.llm import llm
+from utils.logger import logger
 import time
 from langsmith import traceable
 from google.generativeai import configure
