@@ -1,10 +1,26 @@
 from fastapi import APIRouter, WebSocket, Depends, WebSocketDisconnect
 from services import llm_results
-from utils import logger
 from middleware.auth import get_current_user
 from typing import Dict
 from models import get_db, User
 from sqlalchemy.orm import Session
+import logging
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+
+
 router = APIRouter()
 
 connected_clients: Dict[str, WebSocket] = {}

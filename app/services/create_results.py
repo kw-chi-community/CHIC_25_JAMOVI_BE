@@ -5,11 +5,26 @@ import os
 from langchain.prompts import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 import json
-from utils import logger
+import logging
 import time
 from langsmith import traceable
 import re
 import yaml
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+
 
 def load_examples(test_type: str) -> list:
     """test_type에 맞는 예시 입력-출력 가져와서 로드하고 변환
