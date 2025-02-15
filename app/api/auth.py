@@ -81,49 +81,61 @@ async def send_verification_code(email_data: EmailSchema):
     }
     
     message = MessageSchema(
-        subject="CHIC-JMV 이메일 인증 코드",
+        subject="Stat BEE 이메일 인증 코드",
         recipients=[email],
         body=f"회원가입 인증 코드: {code}",
         subtype="plain"
     )
+
+    logger.info("인증 코드", code)
     
     fm = FastMail(mail_config)
     await fm.send_message(message)
     return {"success": True, "detail": "Verification code sent"}
 
+class RegisterForm(BaseModel):
+    email: EmailStr
+    password: str
+    verification_code: str
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    verification_code: str = Form(...),
+    form_data: RegisterForm,
     db: Session = Depends(get_db)
 ):
     try:
-        stored_data = verification_codes.get(form_data.username)
+        logger.info("이메일", form_data.email)
+        logger.info("비밀번호", form_data.password)
+        logger.info("인증코드", form_data.verification_code)
+
+        stored_data = verification_codes.get(form_data.email)
         if not stored_data:
             raise HTTPException(
                 status_code=400,
                 detail="Please request verification code first"
             )
+    
+        logger.info(stored_data)
             
-        if stored_data["code"] != verification_code:
+        if stored_data["code"] != form_data.verification_code:
             raise HTTPException(
                 status_code=400,
                 detail="Invalid verification code"
             )
             
         if datetime.now() - stored_data["timestamp"] > timedelta(minutes=10):
-            verification_codes.pop(form_data.username, None)
+            verification_codes.pop(form_data.email, None)
             raise HTTPException(
                 status_code=400,
                 detail="Verification code expired"
             )
-            
-        new_user = create_user(db, form_data.username, form_data.password, form_data.username)
+        
+        new_user = create_user(db, form_data.email, form_data.password)
         access_token = create_access_token(
             data={"user": new_user.id}
         )
         
-        verification_codes.pop(form_data.username, None)
+        verification_codes.pop(form_data.email, None)
         
         return {"success": True, "token": access_token, "detail": "User created successfully"}
     except Exception as e:
