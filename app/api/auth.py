@@ -33,7 +33,7 @@ mail_config = ConnectionConfig(
 )
 
 def generate_verification_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return ''.join(random.choices(string.digits, k=6))
 
 @router.post("/login")
 async def login(
