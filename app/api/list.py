@@ -10,9 +10,21 @@ from models import (
     get_db
 )
 
-# 로거 설정
-logging.basicConfig(level=logging.INFO)
+import logging
+
 logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
 
 router = APIRouter(prefix="/stats", tags=["Statistics"])
 

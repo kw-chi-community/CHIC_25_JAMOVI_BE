@@ -21,8 +21,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-
-
 router = APIRouter(prefix="/analyze")
 
 @router.post("/results")

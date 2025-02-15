@@ -4,9 +4,22 @@ from models import Project, get_db, ProjectPermission, TableData, StatisticalTes
 from middleware.auth import get_current_user
 from schemas import ProjectCreate, StatisticRequest, RenameStatisticRequest
 from sqlalchemy.exc import SQLAlchemyError
-from utils import logger
 from schemas import StatisticRequest
 from services import one_sample_t_test, independent_t_test, one_way_anova, paired_t_test
+import logging
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 router = APIRouter(prefix="/statistics", tags=["Statistics"])
 

@@ -5,8 +5,21 @@ from middleware.auth import get_current_user
 from schemas import ProjectCreate, ProjectNameUpdate
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import WebSocket
-from utils import logger
 from fastapi import WebSocketDisconnect
+import logging
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 router = APIRouter(prefix="/projects")
 
@@ -221,6 +234,8 @@ async def save_project_table(
         logger.info(f"current_user: {current_user}")
         
         project = db.query(Project).filter(Project.id == project_id).first()
+        logger.info(f"project: {project}")
+
         if not project:
             logger.info(f"Project {project_id} not found")
             await websocket.close(code=4002)
@@ -230,6 +245,7 @@ async def save_project_table(
             ProjectPermission.project_id == project_id,
             ProjectPermission.user_id == current_user["user"]
         ).first()
+        logger.info(f"permission: {permission}")
         
         if not permission and not (
             project.user_id == current_user["user"] or 
@@ -240,13 +256,15 @@ async def save_project_table(
             return
             
         initial_grid = [['' for _ in range(20)] for _ in range(10)]
-        
+        logger.info(f"grid initialized")
+
         table_data_list = db.query(TableData).filter(
             TableData.project_id == project_id
         ).all()
-        
+        logger.info(f"table_data_list: {table_data_list}")
+
         for data in table_data_list:
-            if 0 <= data.row_num < 1000 and 0 <= data.col_num < 1000:
+            if 0 <= data.row_num < 20 and 0 <= data.col_num < 10:
                 initial_grid[data.row_num][data.col_num] = data.value
         
         initial_data = {
@@ -255,10 +273,12 @@ async def save_project_table(
             "data": initial_grid
         }
         await websocket.send_json(initial_data)
+        logger.info(f"initial_data sent")
         
         while True:
             try:
                 data = await websocket.receive_json()
+                logger.info(f"got data: [{data.get('row')}, {data.get('col')}] = {data.get('value')}")
                 row_num = data.get("row")
                 col_num = data.get("col")
                 value = data.get("value")
@@ -275,7 +295,8 @@ async def save_project_table(
                     TableData.row_num == row_num,
                     TableData.col_num == col_num
                 ).first()
-                
+                logger.info(f"table_data: {table_data}")
+
                 if table_data:
                     table_data.value = value
                 else:
@@ -288,6 +309,7 @@ async def save_project_table(
                     db.add(table_data)
                     
                 db.commit()
+                logger.info(f"table_data committed")
                 
                 update_message = {
                     "success": True,
