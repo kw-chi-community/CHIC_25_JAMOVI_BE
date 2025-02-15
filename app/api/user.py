@@ -4,9 +4,23 @@ from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 
 from models import get_db, User
-from utils import logger
-
+import logging
 from middleware.auth import get_current_user
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+
 
 router = APIRouter(prefix="/user")
 

@@ -5,6 +5,7 @@ import os
 from langchain.prompts import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from utils import logger
+import logging
 import time
 from langsmith import traceable
 import yaml
@@ -27,6 +28,18 @@ TEST_TYPE_MAPPING = {
     "paired_t_test": {"yaml_key": "pt"},
     "one_way_anova": {"yaml_key": "owa"}
 }
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 def load_examples(test_type: str) -> list:
     """results_example.yml에서 test_type에 해당하는 question & answer 가져오기"""

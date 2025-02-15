@@ -11,9 +11,22 @@ import os
 from models import get_db, User
 from utils import verify_password, create_access_token, get_password_hash
 from crud import authenticate_user, create_user
-from utils import logger
 from pydantic import EmailStr, BaseModel
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 router = APIRouter(prefix="/auth")
 
