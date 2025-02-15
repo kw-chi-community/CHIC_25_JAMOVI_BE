@@ -19,6 +19,7 @@ python-dotenv
 # auth
 passlib[bcrypt]
 python-jose[cryptography]
+fastapi-mail
 
 # data validation
 pydantic[email]
