@@ -95,11 +95,10 @@ async def send_verification_code(email_data: EmailSchema):
 async def register(
     form_data: OAuth2PasswordRequestForm = Depends(),
     verification_code: str = Form(...),
-    email: str = Form(...),
     db: Session = Depends(get_db)
 ):
     try:
-        stored_data = verification_codes.get(email)
+        stored_data = verification_codes.get(form_data.username)
         if not stored_data:
             raise HTTPException(
                 status_code=400,
@@ -113,18 +112,18 @@ async def register(
             )
             
         if datetime.now() - stored_data["timestamp"] > timedelta(minutes=10):
-            verification_codes.pop(email, None)
+            verification_codes.pop(form_data.username, None)
             raise HTTPException(
                 status_code=400,
                 detail="Verification code expired"
             )
             
-        new_user = create_user(db, form_data.username, form_data.password, email)
+        new_user = create_user(db, form_data.username, form_data.password, form_data.username)
         access_token = create_access_token(
             data={"user": new_user.id}
         )
         
-        verification_codes.pop(email, None)
+        verification_codes.pop(form_data.username, None)
         
         return {"success": True, "token": access_token, "detail": "User created successfully"}
     except Exception as e:
