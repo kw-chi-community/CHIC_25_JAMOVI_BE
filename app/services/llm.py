@@ -1,6 +1,7 @@
 from langchain_google_genai import GoogleGenerativeAI
 from dotenv import load_dotenv
 import os
+from app.utils import logger
 import logging
 
 logger = logging.getLogger(__name__)
