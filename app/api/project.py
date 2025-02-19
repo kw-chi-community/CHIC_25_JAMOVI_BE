@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -319,6 +320,8 @@ async def save_project_table(
                         value=value
                     )
                     db.add(table_data)
+                
+                project.modified_at = datetime.now()
                     
                 db.commit()
                 logger.info(f"{project_id} | {row_num}, {col_num} = {value} table_data committed")
