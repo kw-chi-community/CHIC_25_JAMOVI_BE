@@ -276,7 +276,7 @@ async def save_project_table(
         logger.info(f"table_data_list: {table_data_list}")
 
         for data in table_data_list:
-            if 0 <= data.row_num < 20 and 0 <= data.col_num < 10:
+            if 0 <= data.row_num < 10 and 0 <= data.col_num < 20:
                 initial_grid[data.row_num][data.col_num] = data.value
         
         initial_data = {
@@ -321,7 +321,7 @@ async def save_project_table(
                     db.add(table_data)
                     
                 db.commit()
-                logger.info(f"table_data committed")
+                logger.info(f"{project_id} | {row_num}, {col_num} = {value} table_data committed")
                 
                 update_message = {
                     "success": True,
