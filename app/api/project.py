@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +140,8 @@ def get_user_project(
         "name": project.name,
         "visibility": project.visibility,
         "description": project.description,
+        "created_at": project.created_at,
+        "modified_at": project.modified_at,
     }
 
     if permissions:
@@ -276,7 +279,7 @@ async def save_project_table(
         logger.info(f"table_data_list: {table_data_list}")
 
         for data in table_data_list:
-            if 0 <= data.row_num < 20 and 0 <= data.col_num < 10:
+            if 0 <= data.row_num < 10 and 0 <= data.col_num < 20:
                 initial_grid[data.row_num][data.col_num] = data.value
         
         initial_data = {
@@ -319,9 +322,11 @@ async def save_project_table(
                         value=value
                     )
                     db.add(table_data)
+                
+                project.modified_at = datetime.now()
                     
                 db.commit()
-                logger.info(f"table_data committed")
+                logger.info(f"{project_id} | {row_num}, {col_num} = {value} table_data committed")
                 
                 update_message = {
                     "success": True,
