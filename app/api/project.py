@@ -140,6 +140,8 @@ def get_user_project(
         "name": project.name,
         "visibility": project.visibility,
         "description": project.description,
+        "created_at": project.created_at,
+        "modified_at": project.modified_at,
     }
 
     if permissions:
