@@ -30,6 +30,18 @@ def create_project(
     current_user=Depends(get_current_user)
 ):
     try:
+        if len(project.name) > 250:
+            return {
+                "success": False,
+                "detail": "name is tooo long"
+            }
+            
+        if len(project.description.encode('utf-8')) > 60000:
+            return {
+                "success": False,
+                "detail": "description is tooo long"
+            }
+
         existing_project = db.query(Project).filter(
             Project.name == project.name,
             Project.user_id == current_user["user"]
