@@ -96,8 +96,21 @@ async def send_verification_code(email_data: EmailSchema):
     message = MessageSchema(
         subject="Stat BEE 이메일 인증 코드",
         recipients=[email],
-        body=f"회원가입 인증 코드: {code}",
-        subtype="plain"
+        body=f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h1 style="color: #333;">Stat BEE 이메일 인증</h1>
+                    <p style="color: #666; font-size: 16px;">아래의 인증 코드를 입력해주세요.</p>
+                    <div style="background-color: #ffffff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <span style="font-size: 24px; font-weight: bold; letter-spacing: 3px; color: #007bff;">{code}</span>
+                    </div>
+                    <p style="color: #999; font-size: 14px;">이 인증 코드는 10분 동안 유효합니다.</p>
+                </div>
+            </body>
+        </html>
+        """,
+        subtype="html"
     )
 
     logger.info("인증 코드", code)
