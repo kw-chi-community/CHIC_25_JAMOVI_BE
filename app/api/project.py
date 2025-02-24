@@ -8,6 +8,7 @@ from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 import logging
 from datetime import datetime
+from services import ProjectService
 
 logger = logging.getLogger(__name__)
 
@@ -245,106 +246,16 @@ async def save_project_table(
             logger.info("Authentication failed")
             await websocket.close(code=4001)
             return
-            
-        logger.info(f"current_user: {current_user}")
-        
-        project = db.query(Project).filter(Project.id == project_id).first()
-        logger.info(f"project: {project}")
 
-        if not project:
-            logger.info(f"Project {project_id} not found")
-            await websocket.close(code=4002)
-            return
-            
-        permission = db.query(ProjectPermission).filter(
-            ProjectPermission.project_id == project_id,
-            ProjectPermission.user_id == current_user["user"]
-        ).first()
-        logger.info(f"permission: {permission}")
-        
-        if not permission and not (
-            project.user_id == current_user["user"] or 
-            project.visibility == "public_all_editor"
-        ):
-            logger.info("no permission")
-            await websocket.close(code=4003)
-            return
-            
-        initial_grid = [['' for _ in range(20)] for _ in range(10)]
-        logger.info(f"grid initialized")
+        success, error_code = await ProjectService.handle_table_websocket(
+            websocket=websocket,
+            project_id=project_id,
+            db=db,
+            current_user=current_user
+        )
 
-        table_data_list = db.query(TableData).filter(
-            TableData.project_id == project_id
-        ).all()
-        logger.info(f"table_data_list: {table_data_list}")
-
-        for data in table_data_list:
-            if 0 <= data.row_num < 10 and 0 <= data.col_num < 20:
-                initial_grid[data.row_num][data.col_num] = data.value
-        
-        initial_data = {
-            "type": "initial_data",
-            "success": True,
-            "data": initial_grid
-        }
-        await websocket.send_json(initial_data)
-        logger.info(f"initial_data sent")
-        
-        while True:
-            try:
-                data = await websocket.receive_json()
-                logger.info(f"got data: [{data.get('row')}, {data.get('col')}] = {data.get('value')}")
-                row_num = data.get("row")
-                col_num = data.get("col")
-                value = data.get("value")
-                
-                if not (0 <= row_num < 1000 and 0 <= col_num < 1000): # 테이블 크기가 무한하게 가는 건 막아야겠죠..?
-                    await websocket.send_json({
-                        "success": False,
-                        "message": "Invalid row or column index"
-                    })
-                    continue
-                
-                table_data = db.query(TableData).filter(
-                    TableData.project_id == project_id,
-                    TableData.row_num == row_num,
-                    TableData.col_num == col_num
-                ).first()
-                logger.info(f"table_data: {table_data}")
-
-                if table_data:
-                    table_data.value = value
-                else:
-                    table_data = TableData(
-                        project_id=project_id,
-                        row_num=row_num,
-                        col_num=col_num,
-                        value=value
-                    )
-                    db.add(table_data)
-                
-                project.modified_at = datetime.now()
-                    
-                db.commit()
-                logger.info(f"{project_id} | {row_num}, {col_num} = {value} table_data committed")
-                
-                update_message = {
-                    "success": True,
-                    "type": "update",
-                    "row": row_num,
-                    "col": col_num,
-                    "value": value
-                }
-                await websocket.send_json(update_message)
-                
-            except WebSocketDisconnect:
-                logger.info("websocket disconnected")
-                return
-            except Exception as e:
-                logger.error(f"Error in websocket loop: {str(e)}")
-                if not websocket.client_state.DISCONNECTED:
-                    await websocket.close(code=4000)
-                return
+        if not success and error_code:
+            await websocket.close(code=error_code)
             
     except Exception as e:
         logger.error(f"websocket error: {str(e)}")
