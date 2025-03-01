@@ -43,11 +43,11 @@ async def token_test(request: Request):
             "env": os.getenv("ENV_TEST")
         }
 
-app.include_router(test_router.router)
-app.include_router(auth.router)
-app.include_router(project.router)
-app.include_router(user.router)
-app.include_router(statistics.router)
+app.include_router(test_router.router, tags=["test"])
+app.include_router(auth.router, tags=["auth"], prefix="/auth")
+app.include_router(project.router, tags=["project"], prefix="/project")
+app.include_router(user.router, tags=["user"], prefix="/user")
+app.include_router(statistics.router, tags=["statistics"], prefix="/statistics")
 
 if __name__ == "__main__":
     logger.info("starting server")

@@ -23,7 +23,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-router = APIRouter(prefix="/projects")
+router = APIRouter()
 
 @router.post("/create")
 def create_project(
@@ -261,5 +261,3 @@ async def save_project_table(
         logger.error(f"websocket error: {str(e)}")
         if not websocket.client_state.DISCONNECTED:
             await websocket.close(code=4000)
-
-            

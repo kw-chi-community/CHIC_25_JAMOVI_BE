@@ -21,7 +21,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-router = APIRouter(prefix="/statistics", tags=["Statistics"])
+router = APIRouter()
 
 @router.post("/run")
 async def run_statistic(

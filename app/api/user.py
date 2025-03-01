@@ -22,7 +22,7 @@ logger.setLevel(logging.INFO)
 
 
 
-router = APIRouter(prefix="/user")
+router = APIRouter()
 
 @router.get("/")
 def get_user(

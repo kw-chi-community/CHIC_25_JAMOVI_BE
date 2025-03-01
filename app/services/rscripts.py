@@ -465,7 +465,6 @@ def one_way_anova(groups_data: dict, conf_level: float):
         "total_sum_sq": total_sum_sq,
         "total_df": total_df,
         "conf_level": conf_level,
-
     }
 
     return {
