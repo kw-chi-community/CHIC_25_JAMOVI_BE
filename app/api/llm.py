@@ -20,13 +20,13 @@ logger.setLevel(logging.INFO)
 router = APIRouter()
 
 
-@router.post("/llm/results")
+@router.post("/results")
 async def get_llm_results(request: llmResultRequest):
     logger.info(f"llm_results {request.test_type}")
     logger.info(f"{request.question}")
     return llm_results(test_type=request.test_type, question=request.question)
 
-@router.post("/llm/conclusion")
+@router.post("/conclusion")
 async def get_llm_conclusion(request: llmConclusionRequest):
     logger.info(f"llm_conclusion {request.test_type}")
     logger.info(f"{request.experimental_design}")
