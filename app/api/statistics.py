@@ -269,7 +269,7 @@ async def run_statistic(
         logger.error(f"Error during statistical analysis: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.delete("/delete/{test_id}", response_model=dict)
+@router.delete("/{test_id}", response_model=dict)
 async def delete_statistic_result(
     test_id: int,
     current_user = Depends(get_current_user),
@@ -325,7 +325,7 @@ async def delete_statistic_result(
         logger.error(f"Database error during deletion: {str(e)}")
         raise HTTPException(status_code=500, detail="Database error occurred while deleting test result")
     
-@router.put("/rename/{test_id}", response_model=dict)
+@router.put("/{test_id}", response_model=dict)
 async def rename_statistic_result(
     test_id: int,
     request: RenameStatisticRequest,

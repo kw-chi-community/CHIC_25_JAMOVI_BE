@@ -65,7 +65,7 @@ def delete_project(
     """
     return ProjectService.delete_project(db, project_id, current_user)
 
-@router.put("/update/{project_id}", response_model=dict)
+@router.put("/{project_id}", response_model=dict)
 def update_project_name(
     project_id: int,
     update_data: ProjectNameUpdate,
