@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from api import test_router, auth, project, user, statistics
+from api import test_router, auth, project, user, statistics, llm
 from middleware import auth_middleware
 from contextlib import asynccontextmanager
 from models import init_db
@@ -48,6 +48,7 @@ app.include_router(auth.router, tags=["auth"], prefix="/auth")
 app.include_router(project.router, tags=["project"], prefix="/project")
 app.include_router(user.router, tags=["user"], prefix="/user")
 app.include_router(statistics.router, tags=["statistics"], prefix="/statistics")
+app.include_router(llm.router, tags=["llm"], prefix="/llm")
 
 if __name__ == "__main__":
     logger.info("starting server")
