@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Union
-from typing import Optional, Dict, Any, List # noqa
+from pydantic import BaseModel
+from typing import Optional, Dict, Any, List, Union
 
 from models import get_db
 from services.statistics_results import get_statistical_test_result
