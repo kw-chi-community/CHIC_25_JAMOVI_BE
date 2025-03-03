@@ -195,13 +195,13 @@ class ProjectService:
                 logger.info("no permission")
                 return False, 4003
 
-            initial_grid = [['' for _ in range(20)] for _ in range(10)]
+            initial_grid = [['' for _ in range(20)] for _ in range(100)]
             table_data_list = db.query(TableData).filter(
                 TableData.project_id == project_id
             ).all()
 
             for data in table_data_list:
-                if 0 <= data.row_num < 10 and 0 <= data.col_num < 20:
+                if 0 <= data.row_num < 100 and 0 <= data.col_num < 20:
                     initial_grid[data.row_num][data.col_num] = data.value
             
             await websocket.send_json({
@@ -216,7 +216,7 @@ class ProjectService:
                 col_num = data.get("col")
                 value = data.get("value")
                 
-                if not (0 <= row_num < 1000 and 0 <= col_num < 1000):
+                if not (0 <= row_num < 100 and 0 <= col_num < 20):
                     await websocket.send_json({
                         "success": False,
                         "message": "Invalid row or column index"
