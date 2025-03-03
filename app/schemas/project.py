@@ -7,3 +7,8 @@ class ProjectCreate(BaseModel):
 
 class ProjectNameUpdate(BaseModel):
     name: str
+
+
+class ProjectUpdate(BaseModel):
+    name: str
+    description: Optional[str] = None

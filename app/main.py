@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from api import test_router, auth, project, user, statistics
+from api import test_router, auth, project, user, statistics, llm, list, results
 from middleware import auth_middleware
 from contextlib import asynccontextmanager
 from models import init_db
@@ -43,11 +43,14 @@ async def token_test(request: Request):
             "env": os.getenv("ENV_TEST")
         }
 
-app.include_router(test_router.router)
-app.include_router(auth.router)
-app.include_router(project.router)
-app.include_router(user.router)
-app.include_router(statistics.router)
+app.include_router(test_router.router, tags=["test"])
+app.include_router(auth.router, tags=["auth"], prefix="/auth")
+app.include_router(project.router, tags=["project"], prefix="/projects")
+app.include_router(user.router, tags=["user"], prefix="/user")
+app.include_router(statistics.router, tags=["statistics"], prefix="/statistics")
+app.include_router(llm.router, tags=["llm"], prefix="/llm")
+app.include_router(list.router, tags=["list"], prefix="/list")
+app.include_router(results.router, tags=["results"], prefix="/results")
 
 if __name__ == "__main__":
     logger.info("starting server")
