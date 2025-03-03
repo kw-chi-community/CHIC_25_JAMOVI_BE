@@ -397,3 +397,34 @@ async def get_statistical_test_ids_by_project(
         "count": len(test_info_list)
     }
 
+@router.get("/{project_id}/{test_id}", response_model=StatisticalResultResponse)
+async def get_statistical_result(
+    project_id: int,
+    test_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    if project.user_id != current_user['user']:
+        raise HTTPException(status_code=403, detail="Not authorized to access this project")
+    
+    test = db.query(StatisticalTest).filter(
+        StatisticalTest.id == test_id,
+        StatisticalTest.project_id == project_id
+    ).first()
+    
+    if not test:
+        raise HTTPException(status_code=404, detail="Statistical test not found")
+    
+    return {
+        "success": True,
+        "test_id": test.id,
+        "alias": test.alias or f"Test {test.id}",
+        "test_method": test.test_method,
+        "statistical_test_result": test.statistical_test_result or {},
+        "results": test.results,
+        "conclusion": test.conclusion
+    }
