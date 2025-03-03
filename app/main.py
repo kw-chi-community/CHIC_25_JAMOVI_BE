@@ -45,7 +45,7 @@ async def token_test(request: Request):
 
 app.include_router(test_router.router, tags=["test"])
 app.include_router(auth.router, tags=["auth"], prefix="/auth")
-app.include_router(project.router, tags=["project"], prefix="/project")
+app.include_router(project.router, tags=["project"], prefix="/projects")
 app.include_router(user.router, tags=["user"], prefix="/user")
 app.include_router(statistics.router, tags=["statistics"], prefix="/statistics")
 app.include_router(llm.router, tags=["llm"], prefix="/llm")
