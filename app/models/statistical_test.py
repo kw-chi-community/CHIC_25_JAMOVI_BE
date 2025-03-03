@@ -29,6 +29,8 @@ class StatisticalTest(Base):
     normality_satisfied = Column(Boolean) # 정규성 만족 여부 
     homoscedasticity_satisfied = Column(Boolean) # 등분산성 만족 여부 
     independence_satisfied = Column(Boolean) # 독립성 만족 여부 
+
+    statistical_test_result = Column(JSON)
     
     project = relationship("Project", back_populates="statistical_tests")
     anova_results = relationship("OneWayANOVAResult", back_populates="statistical_test")

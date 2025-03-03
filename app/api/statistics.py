@@ -55,7 +55,8 @@ async def run_statistic(
                 effect_size=request.effectSize,
                 effect_size_value=request.effectSizeValue,
                 descriptive_stats=request.descriptiveStats,
-                value=request.value
+                value=request.value,
+                statistical_test_result=result
             )
             db.add(new_test)
             db.flush()
@@ -104,7 +105,8 @@ async def run_statistic(
                 effect_size=request.effectSize,
                 effect_size_value=request.effectSizeValue,
                 descriptive_stats=request.descriptiveStats,
-                value=request.value
+                value=request.value,
+                statistical_test_result=result
             )
             db.add(new_test)
             db.flush()
@@ -170,7 +172,8 @@ async def run_statistic(
                 effect_size=request.effectSize,
                 effect_size_value=request.effectSizeValue,
                 descriptive_stats=request.descriptiveStats,
-                value=request.value
+                value=request.value,
+                statistical_test_result=result
             )
             db.add(new_test)
             db.flush()
@@ -226,7 +229,8 @@ async def run_statistic(
                 effect_size=request.effectSize,
                 effect_size_value=request.effectSizeValue,
                 descriptive_stats=request.descriptiveStats,
-                value=request.value
+                value=request.value,
+                statistical_test_result=result
             )
             db.add(new_test)
             db.flush()
