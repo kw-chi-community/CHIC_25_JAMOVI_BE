@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from models import Project, get_db, ProjectPermission, TableData, StatisticalTest, OneWayANOVAResult, PairedTTestResult, IndependentTTestResult, OneSampleTTestResult
 from middleware.auth import get_current_user
-from schemas import ProjectCreate, StatisticRequest, RenameStatisticRequest
+from schemas import ProjectCreate, StatisticRequest, RenameStatisticRequest, StatisticalTestIdList, StatisticalResultResponse
 from sqlalchemy.exc import SQLAlchemyError
 from schemas import StatisticRequest
 from services import one_sample_t_test, independent_t_test, one_way_anova, paired_t_test
@@ -368,3 +368,32 @@ async def rename_statistic_result(
         db.rollback()
         logger.error(f"Database error during renaming: {str(e)}")
         raise HTTPException(status_code=500, detail="Database error occurred while renaming test result")
+
+
+@router.get("/{project_id}", response_model=StatisticalTestIdList)
+async def get_statistical_test_ids_by_project(
+    project_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    logger.info(f"project.user_id: {project.user_id}")
+    logger.info(f"current_user['user']: {current_user['user']}")
+    if project.user_id != current_user["user"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this project")
+    
+    tests = db.query(StatisticalTest.id, StatisticalTest.alias).filter(
+        StatisticalTest.project_id == project_id
+    ).all()
+    
+    test_info_list = [{"id": test[0], "alias": test[1] or f"Test {test[0]}"} for test in tests]
+    
+    return {
+        "success": True,
+        "tests": test_info_list,
+        "count": len(test_info_list)
+    }
+

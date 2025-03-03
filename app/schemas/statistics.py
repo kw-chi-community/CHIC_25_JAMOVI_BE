@@ -37,3 +37,21 @@ class StatisticRequest(BaseModel):
 
 class RenameStatisticRequest(BaseModel):
     new_alias: str
+
+class StatisticalTestInfo(BaseModel):
+    id: int
+    alias: str
+
+class StatisticalTestIdList(BaseModel):
+    success: bool
+    tests: List[StatisticalTestInfo]
+    count: int
+
+class StatisticalResultResponse(BaseModel):
+    success: bool
+    test_id: int
+    alias: str
+    test_method: str
+    statistical_test_result: Dict
+    results: Optional[str] = None
+    conclusion: Optional[str] = None
