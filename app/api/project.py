@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from models import Project, get_db, ProjectPermission, TableData
 from middleware.auth import get_current_user
-from schemas import ProjectCreate, ProjectNameUpdate
+from schemas import ProjectCreate, ProjectUpdate
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
@@ -66,9 +66,9 @@ def delete_project(
     return ProjectService.delete_project(db, project_id, current_user)
 
 @router.put("/{project_id}", response_model=dict)
-def update_project_name(
+def update_project(
     project_id: int,
-    update_data: ProjectNameUpdate,
+    update_data: ProjectUpdate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -76,7 +76,7 @@ def update_project_name(
     현재 인증된 사용자가 소유한 프로젝트의 이름을 변경하는 엔드포인트.
     프로젝트 이름 중복 여부도 체크하여 업데이트합니다.
     """
-    return ProjectService.update_project_name(db, project_id, update_data, current_user)
+    return ProjectService.update_project(db, project_id, update_data, current_user)
 
 @router.websocket("/table")
 async def save_project_table(

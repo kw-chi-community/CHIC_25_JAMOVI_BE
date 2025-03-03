@@ -2,7 +2,7 @@ from fastapi import HTTPException, WebSocket
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Project, ProjectPermission, TableData
-from schemas import ProjectCreate, ProjectNameUpdate
+from schemas import ProjectCreate, ProjectUpdate
 import logging
 from datetime import datetime
 from fastapi import WebSocketDisconnect
@@ -138,7 +138,7 @@ class ProjectService:
             raise HTTPException(status_code=500, detail="Database error occurred while deleting project")
 
     @staticmethod
-    def update_project_name(db: Session, project_id: int, update_data: ProjectNameUpdate, current_user: dict):
+    def update_project(db: Session, project_id: int, update_data: ProjectUpdate, current_user: dict):
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -158,14 +158,18 @@ class ProjectService:
             )
         
         project.name = update_data.name
+        if update_data.description is not None:
+            project.description = update_data.description
+        
         try:
             db.commit()
             db.refresh(project)
             return {
                 "success": True,
-                "detail": "Project name updated successfully",
+                "detail": "Project updated successfully",
                 "project_id": project.id,
-                "project_name": project.name
+                "project_name": project.name,
+                "project_description": project.description
             }
         except SQLAlchemyError as e:
             db.rollback()
