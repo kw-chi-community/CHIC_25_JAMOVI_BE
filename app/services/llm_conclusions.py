@@ -10,7 +10,7 @@ import time
 from langsmith import traceable
 import yaml
 from pathlib import Path
-
+from models import StatisticalTest, get_db
 logger = logging.getLogger(__name__)
 
 formatter = logging.Formatter(
@@ -100,31 +100,45 @@ def llm_conclusion_chain(test_type: str) -> RunnablePassthrough:
     return chain
 
 @traceable
-def llm_conclusions(test_type: str, experimental_design: str, subject_info: str, question: str) -> dict:
+def llm_conclusions(test_type: str, experimental_design: str, subject_info: str, question: str, statistical_test_id: int = None) -> dict:
     try:
-        logger.info("llm_conclusions")
-        logger.info(f"experimental_design: {experimental_design[:50]}")
-        logger.info(f"subject_info: {subject_info[:50]}")
-        logger.info(f"question: {question[:50]}")
+        full_prompt = f"""
+        Experimental Design: {experimental_design}
+        Subject Info: {subject_info}
+        Question: {question}
+        """
+        start_time = time.time()
 
         chain = llm_conclusion_chain(test_type)
+        result = chain.invoke({
+            "question": full_prompt
+        })
         
-        full_context = f"""
-Experimental Design: {experimental_design}
-Subject Information: {subject_info}
-Results: {question}
-"""
-
-        start_time = time.time()
-        result = chain.invoke(full_context)
         execution_time = time.time() - start_time
-        execution_time = round(execution_time, 2)
-
-        logger.info(f"result: {result}")
-
+        
+        if statistical_test_id:    
+            db = next(get_db())
+            try:
+                test = db.query(StatisticalTest).filter(StatisticalTest.id == statistical_test_id).first()
+                if test:
+                    if isinstance(result, dict) and "answer" in result:
+                        test.conclusion = result["answer"]
+                    else:
+                        test.conclusion = str(result)
+                    
+                    db.commit()
+                    logger.info(f"saved conclusion at db {statistical_test_id}")
+                else:
+                    logger.warning(f"statistical test id not found {statistical_test_id}")
+            except Exception as e:
+                logger.error(f"error saving conclusion at db {statistical_test_id}: {str(e)}")
+                db.rollback()
+        
+        output = result["answer"] if isinstance(result, dict) and "answer" in result else str(result)
+        
         return {
             "success": True,
-            "output": result.strip(),
+            "output": output.strip(),
             "execution_time": execution_time,
         }
     except Exception as e:

@@ -114,5 +114,5 @@ owa = """
 @router.get("/test/output/results")
 async def output_results():
     logger.info("output_results")
-    return llm_results("owa", owa)
+    return llm_results("owa", owa, 1)
 

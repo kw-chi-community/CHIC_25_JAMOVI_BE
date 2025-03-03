@@ -10,6 +10,7 @@ import time
 from langsmith import traceable
 import yaml
 from pathlib import Path
+from models import StatisticalTest, get_db
 
 logger = logging.getLogger(__name__)
 
@@ -100,26 +101,38 @@ def llm_result_chain(test_type: str) -> RunnablePassthrough:
     return chain
 
 @traceable
-def llm_results(test_type: str, question: str) -> dict:
+def llm_results(test_type: str, question: str, statistical_test_id: int = None) -> dict:
     try:
-        logger.info("llm_results")
-        logger.info(f"question type: {type(question)}")
-        logger.info(f"question: {question[:50]}")
-
-        chain = llm_result_chain(test_type)
-
         start_time = time.time()
-
-        result = chain.invoke(question)
-
+        
+        chain = llm_result_chain(test_type)
+        result = chain.invoke({"question": question})
+        
         execution_time = time.time() - start_time
-        execution_time = round(execution_time, 2)
-
-        logger.info(f"result: {result}")
-
+        
+        if statistical_test_id:            
+            db = next(get_db())
+            try:
+                test = db.query(StatisticalTest).filter(StatisticalTest.id == statistical_test_id).first()
+                if test:
+                    if isinstance(result, dict) and "answer" in result:
+                        test.results = result["answer"]
+                    else:
+                        test.results = str(result)
+                    
+                    db.commit()
+                    logger.info(f"saved at db {statistical_test_id}")
+                else:
+                    logger.warning(f"statistical test id not found {statistical_test_id}")
+            except Exception as e:
+                logger.error(f"error saving at db {statistical_test_id}: {str(e)}")
+                db.rollback()
+        
+        output = result["answer"] if isinstance(result, dict) and "answer" in result else str(result)
+        
         return {
             "success": True,
-            "output": result.strip(),
+            "output": output.strip(),
             "execution_time": execution_time,
         }
     except Exception as e:

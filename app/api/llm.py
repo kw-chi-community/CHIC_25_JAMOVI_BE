@@ -24,7 +24,11 @@ router = APIRouter()
 async def get_llm_results(request: llmResultRequest):
     logger.info(f"llm_results {request.test_type}")
     logger.info(f"{request.question}")
-    return llm_results(test_type=request.test_type, question=request.question)
+    return llm_results(
+        test_type=request.test_type,
+        question=request.question,
+        statistical_test_id=request.statistical_test_id
+        )
 
 @router.post("/conclusion")
 async def get_llm_conclusion(request: llmConclusionRequest):
